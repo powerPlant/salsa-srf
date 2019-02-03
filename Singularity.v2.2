@@ -1,0 +1,33 @@
+Bootstrap: docker
+From: fedora:29
+
+%labels
+Maintainer tejas.sevak@plantandfood.co.nz
+Version 2.2
+
+%environment
+ PATH=/opt/SALSA-2.2:$PATH
+ export PATH
+
+%post
+  ## Install build prerequisites
+  dnf -y install boost-devel gcc gcc-c++ libgomp make perl python2-networkx-core wget zlib-devel
+
+  cd /opt
+  wget https://github.com/machinegun/SALSA/archive/v2.2.tar.gz
+
+  tar -xvf v2.2.tar.gz
+  cd /opt/SALSA-2.2
+  make
+  chmod +x run_pipeline.py
+
+  ## Cleanup
+  dnf -y erase boost-devel gcc gcc-c++ wget zlib-devel
+
+  ### Reinstall runtime dependencies
+  dnf -y install boost
+  dnf -y clean all
+  rm -rf /opt/v2.2.tar.gz
+
+%runscript
+python /opt/SALSA-2.2/run_pipeline.py "$@"
